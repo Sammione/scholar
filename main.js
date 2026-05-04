@@ -3,62 +3,35 @@ const scholarships = [
   {
     id: 1,
     title: "Global Tech Innovation Grant 2026",
-    category: "Technology",
+    category: "Grant",
     amount: "$25,000",
     deadline: "Oct 15, 2026",
-    university: "Stanford University",
-    tags: ["STEM", "International"],
-    link: "https://stanford.edu"
+    university: "Stanford Research",
+    tags: ["Research", "Tech"],
+    link: "https://stanford.edu",
+    eligibility: "Open to graduate researchers in computer science."
   },
   {
     id: 2,
-    title: "Eco-Future Research Scholarship",
-    category: "Sustainability",
+    title: "Eco-Future Sustainability Scholarship",
+    category: "Scholarship",
     amount: "$12,000",
     deadline: "Dec 01, 2026",
     university: "ETH Zurich",
     tags: ["Climate", "Masters"],
-    link: "https://ethz.ch"
+    link: "https://ethz.ch",
+    eligibility: "Undergraduate students with a focus on renewable energy."
   },
   {
     id: 3,
-    title: "Women in Leadership Foundation",
-    category: "Leadership",
-    amount: "$10,000",
+    title: "National Health Research Grant",
+    category: "Grant",
+    amount: "$50,000",
     deadline: "Nov 20, 2026",
-    university: "Harvard Business School",
-    tags: ["Diversity", "MBA"],
-    link: "https://hbs.edu"
-  },
-  {
-    id: 4,
-    title: "Artificial Intelligence Ethics Fellowship",
-    category: "Artificial Intelligence",
-    amount: "$40,000",
-    deadline: "Jan 15, 2027",
-    university: "MIT",
-    tags: ["Ph.D", "Research"],
-    link: "https://mit.edu"
-  },
-  {
-    id: 5,
-    title: "Creative Arts Breakthrough Award",
-    category: "Arts & Humanities",
-    amount: "$5,500",
-    deadline: "Sep 30, 2026",
-    university: "Royal College of Art",
-    tags: ["Visual Arts", "Undergrad"],
-    link: "https://rca.ac.uk"
-  },
-  {
-    id: 6,
-    title: "Digital Health Solutions Grant",
-    category: "Medicine",
-    amount: "$18,000",
-    deadline: "Feb 10, 2027",
-    university: "Oxford University",
-    tags: ["HealthTech", "PostGrad"],
-    link: "https://ox.ac.uk"
+    university: "NIH",
+    tags: ["Medicine", "Public Health"],
+    link: "https://nih.gov",
+    eligibility: "Post-doctoral researchers and medical students."
   }
 ];
 
@@ -99,33 +72,44 @@ function renderScholarships(data) {
   });
 }
 
+// Search Logic
+searchInput.addEventListener('input', (e) => {
+  const query = e.target.value.toLowerCase();
+  console.log("Searching for:", query);
+  
+  const filtered = allScholarships.filter(item => 
+    (item.title && item.title.toLowerCase().includes(query)) || 
+    (item.category && item.category.toLowerCase().includes(query)) || 
+    (item.university && item.university.toLowerCase().includes(query)) ||
+    (item.tags && item.tags.some(tag => tag.toLowerCase().includes(query))) ||
+    (item.eligibility && item.eligibility.toLowerCase().includes(query))
+  );
+  renderScholarships(filtered);
+});
+
 // Category Filtering
 const categoryPills = document.querySelectorAll('.category-pill');
 
 categoryPills.forEach(pill => {
   pill.addEventListener('click', () => {
-    // UI Update
     categoryPills.forEach(p => p.classList.remove('active'));
     pill.classList.add('active');
 
-    // Filtering logic
     const category = pill.getAttribute('data-category');
     if (category === 'all') {
       renderScholarships(allScholarships);
     } else {
       const filtered = allScholarships.filter(item => 
-        item.category.toLowerCase() === category.toLowerCase() ||
-        (category === 'Arts & Humanities' && item.category === 'Arts')
+        (item.category && item.category.toLowerCase().includes(category.toLowerCase())) ||
+        (item.title && item.title.toLowerCase().includes(category.toLowerCase()))
       );
       renderScholarships(filtered);
     }
-    
-    // Scroll to results
     document.getElementById('discover').scrollIntoView({ behavior: 'smooth' });
   });
 });
 
-let allScholarships = scholarships; // Global storage for filtering
+let allScholarships = scholarships; 
 
 import { supabase } from './lib/supabaseClient.js';
 
@@ -139,7 +123,8 @@ async function loadData() {
 
     if (error) throw error;
 
-    allScholarships = [...scholarships, ...externalData];
+    // Merge mock data and live database data
+    allScholarships = [...scholarships, ...(externalData || [])];
     renderScholarships(allScholarships);
   } catch (e) {
     console.error("Supabase load error:", e.message);
