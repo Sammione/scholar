@@ -46,7 +46,7 @@ async function performLiveSearch(query = "") {
     renderScholarships([]);
     return;
   }
-
+  
   console.log("🚀 AI Discovery Engine: Finding scholarships for", query);
   
   scholarshipGrid.innerHTML = `
@@ -57,10 +57,6 @@ async function performLiveSearch(query = "") {
   `;
 
   try {
-    // We use a custom Edge Function or AI-powered proxy to find real data
-    // For this demo, we will use your OpenAI key to simulate the 'Discovery'
-    // In production, you would point this to your Render/Vercel scraper
-    
     const response = await fetch('https://api.openai.com/v1/chat/completions', {
       method: 'POST',
       headers: {
@@ -79,11 +75,14 @@ async function performLiveSearch(query = "") {
       })
     });
 
+    if (!response.ok) throw new Error('API Request Failed');
+    
     const aiResult = await response.json();
     const content = JSON.parse(aiResult.choices[0].message.content);
-    const results = content.scholarships || content.items || Object.values(content)[0];
+    const results = content.scholarships || content.items || Object.values(content)[0] || [];
 
-    renderScholarships(results);
+    allScholarships = results; // Update global state
+    renderScholarships(allScholarships);
   } catch (e) {
     console.error("Discovery Failed:", e);
     renderScholarships([]);

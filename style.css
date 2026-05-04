@@ -116,7 +116,7 @@ nav {
 
 .search-container {
   width: 100%;
-  max-width: 700px;
+  max-width: 850px;
   background: var(--bg-card);
   padding: 0.5rem;
   border-radius: 20px;
@@ -335,22 +335,53 @@ nav {
   100% { transform: rotate(360deg); }
 }
 
-/* --- Responsive --- */
+/* --- Responsive Fixes --- */
+@media (max-width: 1024px) {
+  nav { padding: 1rem 5%; }
+  .container { padding: 4rem 5%; }
+}
+
 @media (max-width: 768px) {
-  nav {
-    padding: 1rem 5%;
+  .nav-links { display: none; }
+  
+  .hero {
+    height: auto;
+    padding: 8rem 5% 4rem;
   }
-  .nav-links {
-    display: none;
-  }
+
   .hero h1 {
-    font-size: 3rem;
+    font-size: clamp(2rem, 10vw, 3rem);
   }
+
   .search-container {
     flex-direction: column;
-    padding: 1rem;
-  }
-  .search-container input {
     padding: 0.8rem;
+    border-radius: 16px;
+    gap: 1rem;
   }
+
+  .search-container input {
+    padding: 0.5rem;
+    text-align: center;
+  }
+
+  .btn-primary {
+    width: 100%;
+  }
+
+  .section-title {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 1rem;
+  }
+
+  .section-title h2 {
+    font-size: 2rem;
+  }
+}
+
+@media (max-width: 480px) {
+  .logo { font-size: 1.2rem; }
+  .card { padding: 1.5rem; }
+  .amount { font-size: 1.2rem; }
 }
