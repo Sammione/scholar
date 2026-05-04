@@ -90,7 +90,20 @@ async function performLiveSearch(query = "") {
   }
 }
 
-// Search Logic (Debounced)
+// Search Button Click Logic
+const searchBtn = document.getElementById('searchBtn');
+searchBtn.addEventListener('click', () => {
+  performLiveSearch(searchInput.value);
+});
+
+// Search on Enter Key
+searchInput.addEventListener('keydown', (e) => {
+  if (e.key === 'Enter') {
+    performLiveSearch(searchInput.value);
+  }
+});
+
+// Search Logic (Debounced typing)
 let searchTimeout;
 searchInput.addEventListener('input', (e) => {
   clearTimeout(searchTimeout);
