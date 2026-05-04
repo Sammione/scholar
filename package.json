@@ -1,0 +1,24 @@
+{
+  "name": "scholarstream",
+  "private": true,
+  "version": "0.0.0",
+  "type": "module",
+  "scripts": {
+    "dev": "vite",
+    "build": "vite build",
+    "preview": "vite preview",
+    "crawl": "node scripts/crawler.cjs",
+    "fetch-grants": "node scripts/fetch_grants_gov.cjs",
+    "update-all": "npm run crawl && npm run fetch-grants"
+  },
+  "devDependencies": {
+    "vite": "^6.2.0"
+  },
+  "dependencies": {
+    "@supabase/supabase-js": "^2.105.3",
+    "axios": "^1.16.0",
+    "cheerio": "^1.2.0",
+    "dotenv": "^17.4.2",
+    "openai": "^6.36.0"
+  }
+}
