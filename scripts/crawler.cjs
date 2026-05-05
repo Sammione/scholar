@@ -8,7 +8,7 @@ const { createClient } = require('@supabase/supabase-js');
 
 // Initialize OpenAI
 const openai = new OpenAI({
-  apiKey: process.env.OPENAI_API_KEY,
+  apiKey: process.env.VITE_OPENAI_API_KEY,
 });
 
 // Initialize Supabase (Using Service Role Key to bypass RLS)
