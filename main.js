@@ -71,62 +71,27 @@ async function performLiveSearch(query = "") {
   const startTime = Date.now();
 
   try {
-    const fetchChunk = async (index) => {
-      const response = await fetch('/api/openai', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${import.meta.env.VITE_OPENAI_API_KEY}`
-        },
-        body: JSON.stringify({
-          model: "gpt-4o-mini",
-          messages: [{
-            role: "system",
-            content: "You are a professional scholarship and grant aggregator like LinkedIn Jobs or Indeed. You find REAL, CURRENT funding opportunities. Always provide valid URLs and unique results."
-          }, {
-            role: "user",
-            content: `Find 25 unique, current scholarships or research grants for "${query}". 
-            This is chunk ${index} of 4, so find different ones than common results.
-            Return as a JSON object with a "scholarships" key containing an array of objects with: title, amount, organization, category, tags (array), eligibility, and link.`
-          }],
-          response_format: { type: "json_object" },
-          temperature: 0.7
-        })
-      });
+    const response = await fetch('http://localhost:8000/search', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ query: query })
+    });
 
-      if (!response.ok) throw new Error('Search failed');
-      
-      const data = await response.json();
-      const content = JSON.parse(data.choices[0].message.content);
-      const results = content.scholarships || content.items || Object.values(content)[0] || [];
-      
-      // Filter out potential duplicates or bad links
-      const uniqueResults = results.filter(newItem => 
-        !currentResults.some(existing => existing.title === newItem.title)
-      );
+    if (!response.ok) throw new Error('Search failed');
+    
+    const data = await response.json();
+    const results = data.results || [];
 
-      currentResults = [...currentResults, ...uniqueResults];
-      
-      // Update Progress and Render
-      const progress = Math.round((currentResults.length / 100) * 100);
-      if (progressEl) progressEl.innerText = `${progress}% Discovered (${currentResults.length} items found)`;
-      
-      if (currentResults.length > 0 && index === 1) {
-        scholarshipGrid.innerHTML = ''; // Clear loader on first successful chunk
-      }
-      renderScholarships(uniqueResults, true);
-    };
+    if (results.length > 0) {
+      scholarshipGrid.innerHTML = ''; 
+    }
+    renderScholarships(results);
 
-    // Run all chunks in parallel for speed
-    await Promise.all(chunks.map(i => fetchChunk(i)));
-
-    console.log(`✅ Search Complete. Found ${currentResults.length} items in ${(Date.now() - startTime)/1000}s`);
+    console.log(`✅ Search Complete. Found ${results.length} items in ${(Date.now() - startTime)/1000}s`);
 
   } catch (e) {
     console.error("High-Volume Discovery Failed:", e);
-    if (currentResults.length === 0) {
-      renderScholarships([]);
-    }
+    renderScholarships([]);
   }
 }
 
