@@ -30,7 +30,7 @@ async def fetch_grants_gov(query: str):
     payload = {
         "keyword": query,
         "oppStatuses": "posted",
-        "rows": 10
+        "rows": 30
     }
     try:
         async with httpx.AsyncClient(verify=False) as http_client:
@@ -59,8 +59,8 @@ async def fetch_chunk(query, index):
         response = await client.chat.completions.create(
             model="gpt-4o-mini",
             messages=[
-                {"role": "system", "content": "You are a professional scholarship and grant aggregator. Find REAL, CURRENT funding opportunities. Provide valid URLs."},
-                {"role": "user", "content": f"Find 10 unique, current scholarships or research grants for '{query}'. This is chunk {index} of 2. Return as JSON with a 'scholarships' key. Include keys: title, university, category, tags (array), eligibility, amount, link."}
+                {"role": "system", "content": "You are a professional scholarship and grant aggregator. Find REAL, CURRENT funding opportunities. Provide valid URLs. Distinguish clearly between 'Scholarship' and 'Grant'."},
+                {"role": "user", "content": f"Find 20 unique, current scholarships or research grants for '{query}'. This is chunk {index} of 4. Return as JSON with a 'scholarships' key. Include keys: title, university, category (Must be 'Scholarship' or 'Grant'), tags (array), eligibility, amount, link."}
             ],
             response_format={"type": "json_object"},
             temperature=0.7
@@ -78,8 +78,8 @@ async def search(request: SearchRequest):
     
     print(f"🔍 Searching for: {request.query}")
     
-    # Run parallel: 2 chunks from AI + Real API call to Grants.gov
-    tasks = [fetch_chunk(request.query, i) for i in range(1, 3)]
+    # Run parallel: 4 chunks from AI + Real API call to Grants.gov (yielding potentially 110 results)
+    tasks = [fetch_chunk(request.query, i) for i in range(1, 5)]
     tasks.append(fetch_grants_gov(request.query))
     
     results = await asyncio.gather(*tasks)
@@ -97,5 +97,5 @@ async def search(request: SearchRequest):
 
 if __name__ == "__main__":
     import uvicorn
-    port = int(os.getenv("PORT", 8000))
+    port = int(os.getenv("PORT", 8001))
     uvicorn.run(app, host="0.0.0.0", port=port)

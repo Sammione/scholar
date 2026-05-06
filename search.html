@@ -122,8 +122,23 @@
                 <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem;">
                     <h3 id="resultCount" style="color: var(--text-muted); font-weight: normal;">Showing recommended opportunities...</h3>
                 </div>
-                <div class="scholarship-grid" id="advancedScholarshipGrid">
-                    <!-- Results injected here -->
+                
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 2rem;">
+                    <!-- Scholarships Space -->
+                    <div>
+                        <h2 style="margin-bottom: 1rem; border-bottom: 2px solid var(--accent); padding-bottom: 0.5rem;">Scholarships</h2>
+                        <div class="scholarship-grid" id="scholarshipsGrid" style="grid-template-columns: 1fr;">
+                            <!-- Scholarships injected here -->
+                        </div>
+                    </div>
+
+                    <!-- Grants Space -->
+                    <div>
+                        <h2 style="margin-bottom: 1rem; border-bottom: 2px solid #4ade80; padding-bottom: 0.5rem;">Grants & Fellowships</h2>
+                        <div class="scholarship-grid" id="grantsGrid" style="grid-template-columns: 1fr;">
+                            <!-- Grants injected here -->
+                        </div>
+                    </div>
                 </div>
             </div>
         </div>
