@@ -1,5 +1,6 @@
 import os
 import asyncio
+import httpx
 from fastapi import FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
@@ -24,13 +25,42 @@ client = AsyncOpenAI(api_key=os.getenv("VITE_OPENAI_API_KEY"))
 class SearchRequest(BaseModel):
     query: str
 
+async def fetch_grants_gov(query: str):
+    url = "https://api.grants.gov/v1/api/search2"
+    payload = {
+        "keyword": query,
+        "oppStatuses": "posted",
+        "rows": 10
+    }
+    try:
+        async with httpx.AsyncClient(verify=False) as http_client:
+            response = await http_client.post(url, json=payload, timeout=15.0)
+            if response.status_code == 200:
+                data = response.json()
+                opps = data.get("oppHits", [])
+                results = []
+                for opp in opps:
+                    results.append({
+                        "title": opp.get("title", "Unknown Grant"),
+                        "university": opp.get("agency", "Grants.gov"),
+                        "category": "Federal Grant",
+                        "tags": ["Grant", "Federal", "Verified"],
+                        "eligibility": "Check Grants.gov for full eligibility requirements.",
+                        "amount": "See Details",
+                        "link": f"https://www.grants.gov/search-results-detail/{opp.get('id', '')}"
+                    })
+                return results
+    except Exception as e:
+        print(f"Error fetching from Grants.gov: {e}")
+    return []
+
 async def fetch_chunk(query, index):
     try:
         response = await client.chat.completions.create(
             model="gpt-4o-mini",
             messages=[
                 {"role": "system", "content": "You are a professional scholarship and grant aggregator. Find REAL, CURRENT funding opportunities. Provide valid URLs."},
-                {"role": "user", "content": f"Find 25 unique, current scholarships or research grants for '{query}'. This is chunk {index} of 4. Return as JSON with a 'scholarships' key."}
+                {"role": "user", "content": f"Find 10 unique, current scholarships or research grants for '{query}'. This is chunk {index} of 2. Return as JSON with a 'scholarships' key. Include keys: title, university, category, tags (array), eligibility, amount, link."}
             ],
             response_format={"type": "json_object"},
             temperature=0.7
@@ -48,8 +78,10 @@ async def search(request: SearchRequest):
     
     print(f"🔍 Searching for: {request.query}")
     
-    # Run 4 parallel chunks to get ~100 results
-    tasks = [fetch_chunk(request.query, i) for i in range(1, 5)]
+    # Run parallel: 2 chunks from AI + Real API call to Grants.gov
+    tasks = [fetch_chunk(request.query, i) for i in range(1, 3)]
+    tasks.append(fetch_grants_gov(request.query))
+    
     results = await asyncio.gather(*tasks)
     
     # Flatten results and remove duplicates
